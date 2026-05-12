@@ -24,20 +24,24 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Install FFmpeg for sounds
+    - name: Install dependencies
       run: |
-        sudo apt-get update && sudo apt-get install -y ffmpeg
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build ffmpeg
         mkdir -p src/assets
         ffmpeg -f lavfi -i "sine=frequency=800:duration=0.1" -ar 44100 src/assets/move.wav -y
         ffmpeg -f lavfi -i "sine=frequency=400:duration=0.2" -ar 44100 src/assets/capture.wav -y
         ffmpeg -f lavfi -i "sine=frequency=1200:duration=0.3" -ar 44100 src/assets/king.wav -y
 
-    - name: Build APK
+    - name: Configure CMake
       run: |
-        make android
+        cmake -B build -DPLATFORM=Android -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-33
+
+    - name: Build APK
+      run: cmake --build build --config Release
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: DamasG1-Android
-        path: build/*.apk
+        path: build/**/*.apk
